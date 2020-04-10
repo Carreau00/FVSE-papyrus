@@ -36,6 +36,7 @@ Keyword Property ObjectTypeChem Auto
 Keyword Property ObjectTypeStimpak Auto
 Formlist Property lootItemsUnique Auto
 Message Property FV_PlayerObjectScatReady Auto
+MiscObject Property Caps001 Auto
 
 Struct ScatData
 	Actor Pred
@@ -419,6 +420,12 @@ ItemParse[] Function ProcessSingleItem(Actor akPrey, Actor akPred, Form afItem, 
 		processedItem.add(armorParse)
 		checkItem = false
 	EndIf
+	If(checkItem && (checkForm is Key || checkForm is Book || checkForm is Holotape || checkForm == Caps001))
+		ItemParse saveItem = new ItemParse
+		saveItem.object = afItem
+		saveItem.count = aiCount
+		processedItem.add(saveItem)
+	EndIf
 	If(checkItem && checkForm is MiscObject)
 		MiscObject:MiscComponent[] comps = (checkForm as MiscObject).GetMiscComponents()
 		Int j=0
@@ -432,13 +439,6 @@ ItemParse[] Function ProcessSingleItem(Actor akPrey, Actor akPred, Form afItem, 
 		EndWhile
 		checkItem = false
 	EndIf
-	If(checkItem && (checkForm is Key || checkForm is Book || checkForm is Holotape))
-		ItemParse saveItem = new ItemParse
-		saveItem.object = afItem
-		saveItem.count = aiCount
-		processedItem.add(saveItem)
-	EndIf
-
 	return processedItem
 EndFunction
 ;Private Functions

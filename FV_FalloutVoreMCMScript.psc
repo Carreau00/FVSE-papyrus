@@ -53,6 +53,7 @@ EndGroup
 
 Group Scripts
 	FV_ConsumptionRegistryScript Property FV_ConsumptionRegistry Auto
+	FV_LevelUpManagerScript Property FV_LevelUpManager Auto
 	FV_VoreHudScript Property FV_VoreHud Auto
 	Hardcore:FV_VoreSurvival Property HC_VoreManager const auto mandatory
 EndGroup
@@ -72,6 +73,7 @@ Bool Property bCrouchToShit Auto Hidden
 Int Property iScatType = 0 Auto Hidden
 
 Actor PlayerRef
+Bool Update301 = false
 
 Event OnInit()
 	PlayerRef = Game.GetPlayer()
@@ -80,11 +82,18 @@ Event OnInit()
 	SyncProperties()
 	EnableOnStart()
 	RestoreCameraProperties()
+	Update301 = true
 EndEvent
 
 Event Actor.OnPlayerLoadGame(Actor akSender)
 	EventRegistration()
 	SyncProperties()
+	If(!Update301)
+		If(FV_LevelUpManager == NONE)
+			FV_LevelUpManager = Game.GetFormFromFile(0x0001101A, "FalloutVore.esp") as FV_LevelUpManagerScript
+		EndIf
+		Update301 = true
+	EndIf
 	;RestoreCameraProperties()
 EndEvent
 
@@ -123,13 +132,13 @@ Function EventRegistration()
 EndFunction
 
 Function LevelUpPlayer()
-	FV_ConsumptionRegistry.LevelUpPlayer()
+	FV_LevelUpManager.LevelUpPlayer_int()
 	debug.messagebox("One level has been added to your vore level.")
 EndFunction
 
 Function LevelUpCompanion()
 	If(currentCompanion != NONE && Game.GetPlayer().GetValue(FV_HasHadNukaAcid) == 0)
-		FV_ConsumptionRegistry.LevelUpNPC(currentCompanion.GetActorRef(), 1)
+		FV_LevelUpManager.LevelUpNPC(currentCompanion.GetActorRef(), 1)
 		debug.messagebox("One level has been added to your companion's vore level.")
 	ElseIf(Game.GetPlayer().GetValue(FV_HasHadNukaAcid) == 1)
 		debug.messagebox("You are a pred.  Level up yourself to level up your companions.")
