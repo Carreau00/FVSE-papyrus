@@ -35,6 +35,8 @@ Group Globals
 	GlobalVariable Property FV_VoreCoreToggle Auto
 	GlobalVariable Property FV_FemaleVoreEnabled Auto
 	GlobalVariable Property FV_MaleVoreEnabled Auto
+	GlobalVariable Property FV_VoreRaiderEnabled Auto
+	GlobalVariable Property FV_VoreRoyaltyEnabled Auto
 EndGroup
 
 Group Perks
@@ -110,6 +112,8 @@ Function EnableOnStart()
 	FV_FemaleVoreEnabled.SetValue(MCM.GetModSettingBool(sModName, "bFemaleVoreEnabledOnStart:FalloutVoreMain") as float)
 	FV_MaleVoreEnabled.SetValue(MCM.GetModSettingBool(sModName, "bMaleVoreEnabledOnStart:FalloutVoreMain") as float)
 	FV_ColdSteelEnabled.SetValue(MCM.GetModSettingBool(sModName, "bColdsteelEnabledOnStart:FalloutVoreMain") as float)
+	FV_VoreRaiderEnabled.SetValue(MCM.GetModSettingBool(sModName, "bVoreRaiderEnabledOnStart:FalloutVoreMain") as float)
+	FV_VoreRoyaltyEnabled.SetValue(MCM.GetModSettingBool(sModName, "bVoreRoyaltyEnabledOnStart:FalloutVoreMain") as float)
 EndFunction
 
 Function ResetCamera()

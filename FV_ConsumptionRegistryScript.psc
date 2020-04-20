@@ -264,13 +264,13 @@ Event OnInit()
 	PlayerRef.AddPerk(FV_ContextVorePerk)
 	RegisterForRemoteEvent(PlayerRef, "OnPlayerLoadGame")
 	;EventRegistration()
-	debug.trace("Fallout Vore v3.0 TEST BUILD initialized")
+	debug.trace("Fallout Vore v3.0 initialized")
 	RegisterForPlayerSleep()
 	RegisterForPlayerWait()
 EndEvent
 
 Event Actor.OnPlayerLoadGame(Actor akSender)
-	debug.trace("Fallout Vore v3.0 TEST BUILD loaded")
+	debug.trace("Fallout Vore v3.0 loaded")
 EndEvent
 
 ;Any updates that require a function call are initilize here

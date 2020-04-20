@@ -74,7 +74,7 @@ Bool Function ChangeColdSteelDigestFullness(Actor akPred, Float TimerState)
 	Bool bUpdateGiantBelly = false
 	Bool predGender = GenderCheck(akPred)
 	Float ChangePerCount = 0.01
-	Int MaxTimerState = ((FV_MaxBellySize.GetValue()/2-1)*3+6) as int
+	Float MaxTimerState = ((FV_MaxBellySize.GetValue()/2.0-1.0)*3.0+6.0)
 	If(akPred.GetItemCount(FV_ColdSteelBellySound) == 0)
 		akPred.EquipItem(FV_ColdSteelBellySound, true, true)
 	EndIf
@@ -87,8 +87,9 @@ Bool Function ChangeColdSteelDigestFullness(Actor akPred, Float TimerState)
 		BodyGen.SetMorph(akPred, predGender, sCBBEGiantBelly, NONE, MaxTimerState * fGiantBellyMultiplier)
 		bUpdateGiantBelly = true
 	ElseIf(TimerState <= MaxTimerState && TimerState > 0)
+		;FV_ConsumptionRegistry.trace(self, "ChangeColdSteelDigestFullness() FV_GiantBelly: " + akPred.GetValue(FV_GiantBelly) + " TimerStateAndMult: " +TimerState*fGiantBellyMultiplier + " fUpdateGiantBelly: " + fUpdateGiantBelly)
 		If(akPred.GetValue(FV_DigestionStarted) as int == 0)
-			;Float tempTimerState = data.TimerState as float
+			;Float tempTimerState = data.TimerState as float	
 			If(akPred.GetValue(FV_GiantBelly) as float < TimerState*fGiantBellyMultiplier)
 				BodyGen.SetMorph(akPred, predGender, sCBBEGiantBelly, NONE, TimerState*fGiantBellyMultiplier)
 			Else
@@ -104,7 +105,7 @@ Bool Function ChangeColdSteelDigestFullness(Actor akPred, Float TimerState)
 				bUpdateGiantBelly = true
 			EndIf
 		EndIf
-	ElseIf(TimerState==0)
+	ElseIf(TimerState == 0)
 		akPred.SetValue(FV_DigestionStarted, 0)
 		BodyGen.SetMorph(akPred, predGender, sCBBEVorePreyBelly, NONE, 0)
 		BodyGen.SetMorph(akPred, predGender, sCBBEGiantBelly, NONE, akPred.GetValue(FV_GiantBelly) as float)

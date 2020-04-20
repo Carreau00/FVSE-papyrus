@@ -5,6 +5,7 @@ ActorBase Property WorkshopNPC_Queen_FV_ Auto
 ActorBase Property WorkshopNPC_King_FV_ Auto
 GlobalVariable Property FV_FemaleVoreEnabled Auto
 GlobalVariable Property FV_MaleVoreEnabled Auto
+GlobalVariable Property FV_VoreRoyaltyEnabled Auto
 WorkshopParentScript Property WorkshopParent Auto
 
 import WorkshopNPCScript
@@ -19,7 +20,8 @@ Event OnEffectStart(Actor akCaster, Actor akTarget)
 EndEvent
 
 Function CheckIfAllowed(Actor akActor)
-	If(FV_FemaleVoreEnabled.GetValue() == 0 && FV_MaleVoreEnabled.GetValue() == 0)
+	
+	If(FV_VoreRoyaltyEnabled.GetValue() == 0 || (FV_FemaleVoreEnabled.GetValue() == 0 && FV_MaleVoreEnabled.GetValue() == 0))
 		SpawnNewActor(akActor)
 		return
 	EndIf

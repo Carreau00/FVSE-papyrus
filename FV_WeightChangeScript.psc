@@ -1432,29 +1432,29 @@ Function IncreaseFullnessMeter(WeightData data, Actor Prey)
 	EndIf
 	
 	;If pred is currently digesting something that will impact their belly size, we need to update the final size so FOVore knows what to aim for during digestion phase
-	If(data.Pred.HasKeyword(FV_ColdSteelBody) && data.isDigesting)
-		Float tempGiantBelly = data.CurrentCBBEGiantBelly
-		Float excessBellyChange
-		Float excessSSBBW2Change = ExcessChangeValue*(data.excess as float)*(fCBBESSBBW2Max-fCBBESSBBW2Min)/100
+	;If(FV_ColdSteelEnabled.GetValue() == 1 && data.isDigesting)
+	;	Float tempGiantBelly = data.CurrentCBBEGiantBelly
+	;	Float excessBellyChange
+	;	Float excessSSBBW2Change = ExcessChangeValue*(data.excess as float)*(fCBBESSBBW2Max-fCBBESSBBW2Min)/100
 		;Float tempCBBESSBBW2 = BodyGen.GetMorph(data.Pred, true, sCBBESSBBW2, NONE)
-		If(data.excess>0)
-			excessBellyChange = ExcessChangeValue*(data.excess as float)*(fCBBEGiantBellyMax-fCBBEGiantBellyMin)/100
-			If(data.CurrentCBBESSBBW2 + excessSSBBW2Change >= (fCBBESSBBW2Max-fCBBESSBBW2Min)*2/300)
-				data.CurrentCBBEGiantBelly = tempGiantBelly+excessBellyChange
-				If(data.CurrentCBBEGiantBelly >= fCBBEGiantBellyMax/100)
-					data.CurrentCBBEGiantBelly = fCBBEGiantBellyMax/100
-				EndIf
-			EndIf
-		ElseIf(data.excess<0)
-			excessBellyChange = ExcessChangeValue*(data.excess as float)*(fCBBEGiantBellyMax-fCBBEGiantBellyMin)*3/100
-			data.CurrentCBBEGiantBelly = tempGiantBelly - excessBellyChange
-			If(tempGiantBelly - excessBellyChange <= fCBBEGiantBellyMin/100)
-				data.CurrentCBBEGiantBelly = fCBBEGiantBellyMin/100
-			EndIf
-		EndIf
-	EndIf
-	data.Pred.SetValue(FV_GiantBelly, data.CurrentCBBEGiantBelly)
-	trace(self, "setting giant belly to " + data.Pred.GetValue(FV_GiantBelly) + " : " + data.PredName)
+	;	If(data.excess>0)
+	;		excessBellyChange = ExcessChangeValue*(data.excess as float)*(fCBBEGiantBellyMax-fCBBEGiantBellyMin)/100
+	;		If(data.CurrentCBBESSBBW2 + excessSSBBW2Change >= (fCBBESSBBW2Max-fCBBESSBBW2Min)*2/300)
+	;			data.CurrentCBBEGiantBelly = tempGiantBelly+excessBellyChange
+	;			If(data.CurrentCBBEGiantBelly >= fCBBEGiantBellyMax/100)
+	;				data.CurrentCBBEGiantBelly = fCBBEGiantBellyMax/100
+	;			EndIf
+	;		EndIf
+	;	ElseIf(data.excess<0)
+	;		excessBellyChange = ExcessChangeValue*(data.excess as float)*(fCBBEGiantBellyMax-fCBBEGiantBellyMin)*3/100
+	;		data.CurrentCBBEGiantBelly = tempGiantBelly - excessBellyChange
+	;		If(tempGiantBelly - excessBellyChange <= fCBBEGiantBellyMin/100)
+	;			data.CurrentCBBEGiantBelly = fCBBEGiantBellyMin/100
+	;		EndIf
+	;	EndIf
+	;EndIf
+	;data.Pred.SetValue(FV_GiantBelly, data.CurrentCBBEGiantBelly)
+	;trace(self, "setting giant belly to " + data.Pred.GetValue(FV_GiantBelly) + " : " + data.PredName)
 	data.Pred.SetValue(FV_FullnessMeter, data.FullnessMeter)
 	If(data.Pred.HasPerk(FV_HungerSpeed) && data.FullnessMeter > 40)
 		trace(self, "Actor: " + data.PredName + " : speed reset to 100.")
@@ -1512,7 +1512,7 @@ Function SetNewWeight(WeightData data)
 			BodyGen.SetMorph(data.Pred, true, sCBBEBreasts, NONE, data.CurrentCBBEBreasts)
 			BodyGen.SetMorph(data.Pred, true, sCBBEBreastFantasy, NONE, data.CurrentCBBEBreastFantasy)
 			BodyGen.SetMorph(data.Pred, true, sCBBEUltKirBody, NONE, data.CurrentCBBEUltKirBody)
-			If(!data.Pred.HasKeyword(FV_ColdSteelBody) || !data.isDigesting)
+			If(!data.isDigesting)
 				BodyGen.SetMorph(data.Pred, true, sCBBEGiantBelly, NONE, data.CurrentCBBEGiantBelly)
 			EndIf
 			BodyGen.UpdateMorphs(data.Pred)
@@ -1910,7 +1910,7 @@ Float Function UpdateCBBE(WeightData data, Float UpdateSlim)
 	If(TimerChangeValue > 0)
 		UpdateCBBEUltKirBody = UpdateCBBEUltKirBody + (TimerChangeValue*(fCBBEUltKirBodyMax-fCBBEUltKirBodyMin)/100)
 		UpdateCBBESSBBW2 = UpdateCBBESSBBW2 + (TimerChangeValue*(fCBBESSBBW2Max-fCBBESSBBW2Min)/100)
-		If(!data.Pred.HasKeyword(FV_ColdSteelBody) || !data.isDigesting)
+		If(!data.isDigesting)
 			If(UpdateCBBESSBBW2 >= (fCBBESSBBW2Max-fCBBESSBBW2Min)*2/300)
 				UpdateCBBEGiantBelly = UpdateCBBEGiantBelly + (TimerChangeValue*(fCBBEGiantBellyMax-fCBBEGiantBellyMin)/100)
 			EndIf
@@ -2141,13 +2141,13 @@ Float Function UpdateCBBE(WeightData data, Float UpdateSlim)
 	EndIf
 	If(UpdateCBBEGiantBelly != data.CurrentCBBEGiantBelly)
 		;If(!data.Pred.HasKeyword(FV_ColdSteelBody) || !data.isDigesting)
-			bool performBellyUpdate = false
-			If(data.Pred.HasKeyword(FV_ColdSteelBody) && data.Pred.GetValue(FV_CurrentPrey) as int == 0)
-				performBellyUpdate = true
-			ElseIf(!data.Pred.HasKeyword(FV_ColdSteelBody))
-				performBellyUpdate = true
-			EndIf
-			If(performBellyUpdate)
+			;bool performBellyUpdate = false
+			If(data.Pred.GetValue(FV_CurrentPrey) as int == 0)
+			;	performBellyUpdate = true
+			;ElseIf(!data.Pred.HasKeyword(FV_ColdSteelBody))
+			;	performBellyUpdate = true
+			;EndIf
+			;If(performBellyUpdate)
 				data.CurrentCBBEGiantBelly = UpdateCBBEGiantBelly
 				data.Pred.SetValue(FV_GiantBelly, data.CurrentCBBEGiantBelly)
 				trace(self, "setting giant belly to " + data.Pred.GetValue(FV_GiantBelly))
@@ -2171,7 +2171,7 @@ EndFunction
 Function UpdateThiccnessMeter(WeightData data)
 	Float UpdatedThiccnessMeter
 	Int UpdatedMaxThiccness = 0
-	If(data.AtomicBEnabled)
+	If((iPlayerSliderType==1 && data.Pred == Game.GetPlayer()) || (iCompanionSliderType == 1 && data.Pred != Game.GetPlayer()))
 		If((fABSlimMin-fABSlimMax) != 0)
 			UpdatedThiccnessMeter += (fABSlimMax - data.CurrentABSlim)/(fABSlimMin - fABSlimMax)
 			UpdatedMaxThiccness += 1
@@ -2236,7 +2236,7 @@ Function UpdateThiccnessMeter(WeightData data)
 			UpdatedThiccnessMeter += (fABWaistWideMin - data.CurrentABWaistWide)/(fABWaistWideMin - fABWaistWideMax)
 			UpdatedMaxThiccness += 1
 		EndIf
-	ElseIf(data.CBBEEnabled)
+	ElseIf((iPlayerSliderType==2 && data.Pred == Game.GetPlayer()) || (iCompanionSliderType == 2 && data.Pred != Game.GetPlayer()))
 		If((fCBBE7BUpperMin - fCBBE7BUpperMax) != 0)
 			UpdatedThiccnessMeter += (fCBBE7BUpperMin-data.CurrentCBBE7BUpper*100)/(fCBBE7BUpperMin - fCBBE7BUpperMax)
 			UpdatedMaxThiccness += 1
@@ -2326,7 +2326,8 @@ Function UpdateThiccnessMeter(WeightData data)
 			UpdatedMaxThiccness += 1
 		EndIf
 	EndIf
-	data.ThiccnessMeter = UpdatedThiccnessMeter/UpdatedMaxThiccness
+	data.ThiccnessMeter = UpdatedThiccnessMeter/(UpdatedMaxThiccness as float)
+	;trace(self, "UpdatedThiccnessMeter: " + UpdatedThiccnessMeter + " UpdatedMaxThiccness: " + UpdatedMaxThiccness + "ThiccnessMeter: " + data.ThiccnessMeter)
 EndFunction
 
 Function ShapeSettingReset()
@@ -2784,7 +2785,7 @@ Function UpdateBodyOnTimer(WeightData data)
 			data.ThiccnessMeter = data.CurrentLarge
 			SetNewWeight(data)
 		EndIf
-		
+		FV_VoreHud.UpdateThiccStats(data.index, data.ThiccnessMeter, (data.FullnessMeter as float)/100, data.MeterDownCounter)
 		If(UpdateThin <= 0.05 && !data.HasPlayedThiccMessage1)
 			MessagePlay(20, data)										;play second skin thicc message
 			data.HasPlayedThiccMessage1 = true
