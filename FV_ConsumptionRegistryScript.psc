@@ -131,6 +131,7 @@ Group Potions
 	Potion Property FV_ScatPotion Auto
 	Potion Property FV_ContextPreyPotion Auto
 	Potion Property FV_IndigestionEffect Auto
+	Potion Property FV_RemoveSwallowProtection Auto
 EndGroup
 
 Group Scripts
@@ -748,6 +749,14 @@ Function TrackerUpdate()
 	FV_VoreHud.SendTrackerUpdate()
 EndFunction
 
+Function SendRemoveHealthBar(int aiIndex)
+	FV_VoreHud.RemoveHealthBar(aiIndex)
+EndFunction
+
+Function SendUpdateHealthBar(int aiIndex, Actor akActor)
+	FV_VoreHud.UpdateHealthBar(aiIndex, akActor)
+EndFunction
+
 Function UpdateDeadValue(int iPreyIndex, Bool value)
 	int i = PredPreyArray.FindStruct("Index", iPreyIndex)
 	PredPreyArray[i].IsDead = value
@@ -1241,9 +1250,27 @@ float Function CalculateIndigestionChance(Actor akPred, Actor akPrey)
 	
 EndFunction
 
+Struct SwallowActors
+	Actor Pred
+	Actor Prey
+	bool LethalFlag
+EndStruct
+
+SwallowActors[] SwallowBuffer
+bool bProcessingSwallow = false
+
 ;Perform swallow and register for vore events	
 Function PerformVoreEvent(Actor akPred, Actor akPrey, bool bLethalFlag)
-	PerformVoreEvent1(akPred, akPrey, bLethalFlag)
+	SwallowActors temp = new SwallowActors
+	temp.Pred = akPred
+	temp.Prey = akPrey
+	temp.LethalFlag = bLethalFlag
+	If(SwallowBuffer == NONE)
+		SwallowBuffer = new SwallowActors[0]
+		SwallowBuffer.clear()
+	EndIf
+	SwallowBuffer.add(temp)
+	CallFunctionNoWait("PerformVoreEvent1", new Var[0])
 EndFunction
 
 ;Called from other functions if digestion is triggered externaly rarther than after prey death.
@@ -1313,7 +1340,23 @@ EndFunction
 
 
 ; Perform swallow and register for vore events. 
-Function PerformVoreEvent1(Actor akPred, Actor akPrey, bool bLethalFlag)
+Function PerformVoreEvent1()
+	trace(self, "PerformVoreEvent1() Processing " + SwallowBuffer.length + " Swallow buffer...")
+	trace(self, "PerformVoreEvent1() SwallowBuffer: " + SwallowBuffer)
+	If(bProcessingSwallow)
+		return
+	EndIf
+	bProcessingSwallow = true
+	While SwallowBuffer.length > 0
+		ProcessSingleSwallow(SwallowBuffer[0].Pred, SwallowBuffer[0].Prey, SwallowBuffer[0].LethalFlag)
+		SwallowBuffer.remove(0)
+		trace(self, "PerformVoreEvent1() " + SwallowBuffer.length + " remaining.")
+		utility.WaitMenuMode(0.1)
+	EndWhile
+	bProcessingSwallow = false
+EndFunction
+
+Function ProcessSingleSwallow(Actor akPred, Actor akPrey, bool bLethalFlag)
 	;Debug.Notification("Starting script")	
 	If(akPred != PlayerRef && akPred.GetValue(FV_HasHadNukaAcid) == 0)
 		akPred.SetValue(FV_HasHadNukaAcid, 1)
@@ -1484,6 +1527,9 @@ Function PerformVoreEventAccept(Actor akPred, Actor akPrey, bool bLethalFlag)
 	trace(self, "Ticks till escape: " + akPrey.GetValue(FV_TicksTillEscapeStart))
 	;Start vore timer
 	VoreData data = GetPreyAndPredFromIndex(preyIndex)
+	If(akPred == PlayerRef)
+		SendUpdateHealthBar(PreyIndex, akPrey)
+	EndIf
 	If data.IsDead
 		trace(self, "PerformVoreEventAccept() data.Index: " + data.Index + " data.IsDead: " + data.IsDead + " Perform OnTimerPerformDigestion")
 		OnTimerPerformDigestion(data.Index, data)
@@ -1494,22 +1540,42 @@ Function PerformVoreEventAccept(Actor akPred, Actor akPrey, bool bLethalFlag)
 		StartTimer(data.DigestSpeedTime, PreyIndex)
 	EndIf
 	ChangeFullnessArmor(akPred, akPred.GetValue(FV_CurrentPrey) as int)
+	
 	;Play swallow success audio
+	var[] akArgs = new var[1]
+	akArgs[0] = akPred
+	CallFunctionNoWait("PlayAcceptSounds", akArgs)
+	PrintInfos()
+EndFunction
+
+bool bPlayingAcceptSounds = false
+int iPlayerSoundID = -1
+
+Function PlayAcceptSounds(Actor akPred)
+	If(bPlayingAcceptSounds)
+		return
+	EndIf
+	trace(self, "PlayAcceptSounds() Test point 1")
+	bPlayingAcceptSounds = true
 	If(akPred == PlayerRef)
-		FV_PlayerSwallowAttempt.PlayAndWait(akPred)
-		FV_PlayerSwallowSuccess.PlayAndWait(akPred)
+		Sound.StopInstance(iPlayerSoundID)
+		;FV_PlayerSwallowAttempt.Play(akPred)
+		If(Utility.RandomInt() as float < FV_SwallowCommentChance.GetValue())
+			iPlayerSoundID = FV_PlayerPostSwallowComment.Play(akPred)
+		Else
+			iPlayerSoundID = FV_PlayerSwallowSuccess.Play(akPred)
+		EndIf
 	Else
-		FV_NPCSwallowAttempt.PlayAndWait(akPred)
-		FV_NPCSwallowSuccess.PlayAndWait(akPred)
+		;FV_NPCSwallowAttempt.PlayAndWait(akPred)
+		FV_NPCSwallowSuccess.Play(akPred)
 	EndIf
 	
 	;Randomly comment on the swallow
-	If(Utility.RandomInt() < FV_SwallowCommentChance.GetValue() && akPred == PlayerRef)
+	;If(Utility.RandomInt() < FV_SwallowCommentChance.GetValue() && akPred == PlayerRef)
 		;Play swallow success comment audio
-		FV_PlayerPostSwallowComment.PlayAndWait(akPred)
-	EndIf
-	
-	PrintInfos()
+		;FV_PlayerPostSwallowComment.PlayAndWait(akPred)
+	;EndIf
+	bPlayingAcceptSounds = false
 EndFunction
 
 ; Private
@@ -1517,15 +1583,13 @@ Function PerformVoreEventReject(Actor akPred, Actor akPrey)
 	;Swallow failed
 	
 	;Play failed to swallow sound
-	If(akPred == PlayerRef)
-		FV_PlayerSwallowFail.PlayandWait(akPred)
-	Else
-		FV_NPCSwallowFail.PlayandWait(akPred)
-	EndIf
+	Var[] soundArgs = new var[1]
+	soundArgs[0] = akPred
+	CallFunctionNoWait("PlayFailSounds", soundArgs)
 	
-	Var[] akArgs = new Var[2]
+	Var[] akArgs = new Var[3]
 	akArgs[0] = akPred
-	akArgs[1] = None
+	akArgs[1] = akPrey
 	SendCustomEvent("OnVomit", akArgs)
 	
 	;Small delay to let audio to get to the appropreate point TODO: Spilt audio into two sections with one to be triggered after move thus making this hack to be redundant.
@@ -1549,8 +1613,24 @@ Function PerformVoreEventReject(Actor akPred, Actor akPrey)
 	Else
 		akPrey.MoveTo(akPred)																				;Move prey to pred
 	EndIf
+	akPrey.EquipItem(FV_RemoveSwallowProtection, true, true)
 EndFunction
 
+bool bPlayingFailSounds = false
+
+Function PlayFailSounds(Actor akPred)
+	If(bPlayingFailSounds)
+		return
+	EndIf
+	bPlayingFailSounds = true
+	If(akPred == PlayerRef)
+		FV_PlayerSwallowFail.PlayandWait(akPred)
+	Else
+		FV_NPCSwallowFail.PlayandWait(akPred)
+	EndIf
+	
+	bPlayingFailSounds = false
+EndFunction
 
 ;************************************************************************************
 ;************************************************************************************
@@ -1597,10 +1677,9 @@ Event OnTimer(int aiTimerID)
 	;ElseIf(data.TimerState == 101)
 	;	...
 	;	...
-		
-	(FV_ColdSteelEnabled.GetValue() > 0 && (currentPred.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))
+	
 	ElseIf (data.TimerState >= 12 && data.TimerState < 99)
-		If(data.TimerState == 12 && (FV_ColdSteelEnabled.GetValue() > 0 && (currentPred.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;currentPred.HasKeyword(FV_ColdSteelBody))
+		If((FV_ColdSteelEnabled.GetValue() > 0 && (currentPred.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;currentPred.HasKeyword(FV_ColdSteelBody))
 			UpdateColdSteelCounter(aiTimerID, data.ColdSteelCounter - 1)
 			FV_ColdSteelBellyQuest.ChangeColdSteelDigestFullness(currentPred, data.TimerState as float)
 			If(data.ColdSteelCounter == 0)
@@ -1614,11 +1693,11 @@ Event OnTimer(int aiTimerID)
 			StartTimer(data.DigestSpeedTime/ColdSteelCounts, aiTimerID)
 		Else
 			trace(self, "OnTimer() state < 99 && >= 12 aiTimerID: " + aiTimerID + " currentPred: " + currentPred + " TimerState: " + data.TimerState)
-			If((FV_ColdSteelEnabled.GetValue() > 0 && (currentPred.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;currentPred.HasKeyword(FV_ColdSteelBody))
-				FV_ColdSteelBellyQuest.ChangeColdSteelDigestFullness(currentPred, data.TimerState as float)
-			Else
+			;If((FV_ColdSteelEnabled.GetValue() > 0 && (currentPred.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;currentPred.HasKeyword(FV_ColdSteelBody))
+				;FV_ColdSteelBellyQuest.ChangeColdSteelDigestFullness(currentPred, data.TimerState as float)
+			;Else
 				ChangeDigestFullnessArmor(currentPred, data.TimerState)
-			EndIf
+			;EndIf
 			UpdateTimerState(aiTimerID, data.TimerState-1)
 			OnTimerPlaySound(data)
 		
@@ -1818,6 +1897,9 @@ function OnTimerDecreaseTicks(int aiTimerID, VoreData data)
 	ElseIf(data.isLethal)
 		currentPrey.DamageValue(Game.GetHealthAV(), DamageDealt)															;if prey was not meant to die, deal damage to it now
 	EndIf
+	If(currentPred == PlayerRef)
+		SendUpdateHealthBar(aiTimerID, currentPrey)
+	EndIf
 	
 	Int EscapeRoll = Utility.RandomInt()
 	
@@ -1869,6 +1951,9 @@ function OnTimerPerformDigestion(int aiTimerID, VoreData data)
 	kArgs[3] = FindBellyContainer(CurrentPred)
 	SendCustomEvent("OnDigest", kArgs)
 	
+	If(CurrentPred == PlayerRef)
+		SendRemoveHealthBar(aiTimerID)
+	EndIf
 	UpdateDeadValue(aiTimerID , True)
 	UpdateCurrentInStomach(aiTimerID)
 	
@@ -1967,7 +2052,9 @@ Function OnTimerTriggerDigestionSequence(int aiTimerID, VoreData data)
 	EndIf
 	Actor currentPred = data.Pred
 	Actor currentPrey = data.Prey
-	
+	If(currentPred == PlayerRef)
+		FV_VoreHud.ClearHealthBars()
+	EndIf
 	;Get chance of getting indigestion from actor value
 	float indigestionChance = currentPred.GetValue(FV_IndigestionChanceOnNextDigest)
 	
@@ -2169,6 +2256,9 @@ function OnTimerPerformVomit(int aiTimerID, VoreData data)
 	
 	Actor currentPrey = data.Prey
 	Actor currentPred = data.Pred
+	If(currentPred == PlayerRef)
+		SendRemoveHealthBar(aiTimerID)
+	EndIf
 	
 	int root = GetRoot(data.Index, false)
 	
@@ -2224,7 +2314,7 @@ function OnTimerPerformVomit(int aiTimerID, VoreData data)
 			currentPrey.MoveTo(currentPred)																			;Move prey to pred	
 			currentPrey.PushActorAway(currentPrey, 0)																;moved this to only happen to NPC actors.  Delayed ragdoll to player is problematic
 		EndIf
-		
+		currentPrey.EquipItem(FV_RemoveSwallowProtection, true, true)
 	Else
 	
 		; continue digestion
@@ -2311,6 +2401,7 @@ Function ChangeFullnessArmor(actor ak, Int newValue)
 	If((FV_ColdSteelEnabled.GetValue() > 0 && (ak.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;ak.HasKeyword(FV_ColdSteelBody))
 		UseColdSteel = FV_ColdSteelBellyQuest.ChangeColdSteelFullness(ak, newValue)
 	EndIf
+	
 	If(!UseColdSteel && newValue > 0)
 		If(ak.GetValue(FV_HumanPreyCount) >= ak.GetValue(FV_CurrentPrey)/2)
 			If(!RemoveHumanArmor[newValue - 1])
@@ -2323,7 +2414,6 @@ Function ChangeFullnessArmor(actor ak, Int newValue)
 			EndIf
 			RemoveNonHumanArmor[newValue - 1] = false
 		EndIf
-
 	EndIf
 	i = 0
 	While(i < VoreBellyArray.Length)
@@ -2337,13 +2427,11 @@ Function ChangeFullnessArmor(actor ak, Int newValue)
 		EndIf
 		i += 1
 	EndWhile
-
 EndFunction
 
 ; Change digest fullness armor
 function ChangeDigestFullnessArmor(Actor currentDigester, int item = -1) ; item 0 - 99 or -1 to remove laa
 	trace(self, "ChangeDigestFullnessArmor: " + currentDigester + ", " + item)
-	trace(self, "Change digestfullness armor to " + item)
 
 	if(item == -1)
 		int i = 1
@@ -2472,6 +2560,7 @@ Function ResetVoreMod(Bool resetPlayer = False)
 		ClearPredPreyFaction()
 		a.setGhost(False)
 		a.MoveTo(a)																				;Move the pred to the player
+		a.EquipItem(FV_RemoveSwallowProtection, true, true)
 		Utility.Wait(4 as float)
 	EndIf
 	If((FV_ColdSteelEnabled.GetValue() > 0 && (a.GetLeveledActorBase().GetSex() == 1 || FV_MaleColdSteelToggle.GetValue() == 1))) ;a.HasKeyword(FV_ColdSteelBody))
@@ -2562,6 +2651,7 @@ Function ResetVoreMod(Bool resetPlayer = False)
 			If(a.HasPerk(FV_HeavyPredNPC))
 				a.RemovePerk(FV_HeavyPredNPC)
 			Endif
+			a.EquipItem(FV_RemoveSwallowProtection, true, true)
 		EndIf
 		
 		i += 1

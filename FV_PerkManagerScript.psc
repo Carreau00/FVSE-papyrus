@@ -15,10 +15,16 @@ Group Perks
 	{All Pred perks go here}
 	PerkArray[] Property PreyPerksArray Auto
 	{All Prey perks go here}
+	PerkArray[] Property CapacityPerksArray Auto
+	{All Prey perks go here}
 EndGroup
 
 Group Quests
 	FV_ConsumptionRegistryScript Property FV_ConsumptionRegistry Auto
+EndGroup
+
+Group Factions
+	Faction Property HasBeenCompanionFaction Auto
 EndGroup
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
@@ -43,4 +49,13 @@ Function PerformLevelUp(Actor ActorToLevel)
 			EndIf
 			i += 1
 		EndWhile
+		If(!ActorToLevel.IsInFaction(HasBeenCompanionFaction))
+			i = 0
+			While(i < CapacityPerksArray.Length)
+				If(!ActorToLevel.HasPerk(CapacityPerksArray[i].VorePerk) && PredLevel >= CapacityPerksArray[i].VoreLevelReq)
+					ActorToLevel.AddPerk(CapacityPerksArray[i].VorePerk)
+				EndIf
+				i += 1
+			EndWhile
+		EndIf
 EndFunction

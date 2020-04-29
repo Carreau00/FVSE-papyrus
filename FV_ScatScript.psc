@@ -23,7 +23,7 @@ GlobalVariable Property FV_ScatBool Auto
 Faction Property CurrentCompanionFaction Auto
 
 Event OnEffectStart(Actor akTarget, Actor akCaster)
-	If(akCaster == Game.GetPlayer() && akcaster.getValue(FV_Scatready) >= 1)
+	If(akCaster == Game.GetPlayer() && FV_ScatEnabled.GetValue() == 1 && akcaster.getValue(FV_Scatready) >= 1)
 		FV_ScatManager.PlayerScat(akCaster)
 	ElseIf(akCaster == Game.GetPlayer() && FV_ScatEnabled.GetValue() == 0)
 		FV_BellyContainer.Activate(Game.GetPlayer(), false)

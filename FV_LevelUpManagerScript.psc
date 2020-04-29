@@ -119,8 +119,8 @@ Function CalculateVoreXP(Actor akPred, Actor akPrey)
 	FV_ConsumptionRegistry.trace(self, "CalculateVoreXP() akPred: " + akPred + " akPrey: " + akPrey)
 	Actor PredToLevel = akPred
 	float VoreLevel = akPred.GetValue(FV_PredLevel) + akPred.GetValue(FV_PreyLevel) + 13.0	;modify by 13 to bring base preyelevel to old 14 base
-	If(akPred == PlayerRef)
-		VoreLevel = VoreLevel + FV_VoreLevelPoints.GetValue()
+	If(akPred == PlayerRef || akPred.IsInFaction(HasBeenCompanionFaction))
+		VoreLevel = PlayerRef.GetValue(FV_PredLevel) + PlayerRef.GetValue(FV_PreyLevel) + 13.0 + FV_VoreLevelPoints.GetValue()
 	EndIf
 	Float XPGain = Math.Ceiling(VoreLevel/3.0)*(1.0-2.0*((akPred.GetLevel() as float)-(akPrey.GetLevel() as float))/100)
 	
@@ -143,20 +143,17 @@ Function CheckLevelUp(Float afXPGain, Actor akActorToLevel, float akVoreLevel)
 	Float OldLevel
 	Float OldXP
 	Float OldLevelReq
+	Float newXPGain = afXPGain
 	
-	If(akActorToLevel.IsInFaction(HasBeenCompanionFaction) && PlayerRef.GetValue(FV_HasHadNukaAcid) == 1)
+	If(akActorToLevel.IsInFaction(HasBeenCompanionFaction)) ;&& PlayerRef.GetValue(FV_HasHadNukaAcid) == 1)
 		;We want to add some XP to the player instead of the companion.  Companion will level up with player once playerlevels
-		int CompanionXP = Math.Ceiling(afXPGain * 0.25)
-		ActorToLevel = PlayerRef
-		OldLevel = akVoreLevel
-		OldXP = ActorToLevel.GetValue(FV_VoreXP)
-		ActorToLevel.ModValue(FV_VoreXP, CompanionXP)
-	Else
-		OldLevel = akVoreLevel
-		OldXP = akActorToLevel.GetValue(FV_VoreXP)
-		akActorToLevel.ModValue(FV_VoreXP, afXPGain)
+		newXPGain = Math.Ceiling(afXPGain * 0.25)
+		ActorToLevel = PlayerRef		
 	EndIf
 	
+	OldLevel = akVoreLevel
+	OldXP = ActorToLevel.GetValue(FV_VoreXP)
+	ActorToLevel.ModValue(FV_VoreXP, newXPGain)
 	;If(akActorToLevel == PlayerRef)
 		;FV_VoreLevelPoints.SetValue(FV_VoreLevelPoints + 1)
 	float LevelReq = Math.Ceiling(Math.Pow(akVoreLevel/2, 1.7))
@@ -190,9 +187,9 @@ Function CheckLevelUp(Float afXPGain, Actor akActorToLevel, float akVoreLevel)
 		EndIf
 	EndWhile
 	If(ActorToLevel == PlayerRef)
-		FV_VoreHud.UpdatePlayerXP((OldXP/OldLevelReq * 100) as int, (ActorToLevel.GetValue(FV_VoreXP)/LevelReq * 100) as int, afXPGain as int, levelUp as int)
+		FV_VoreHud.UpdatePlayerXP((OldXP/OldLevelReq * 100) as int, (ActorToLevel.GetValue(FV_VoreXP)/LevelReq * 100) as int, newXPGain as int, levelUp as int)
 	Endif
-	FV_ConsumptionRegistry.trace(self, "Actor " + ActorToLevel + "Previous XP: " + OldXP + " afXPGain: " + afXPGain + " New XP: " + ActorToLevel.GetValue(FV_VoreXP) + " Old Level: " + OldLevel + " NewLevel: " + akVoreLevel)
+	FV_ConsumptionRegistry.trace(self, "Actor " + ActorToLevel + "Previous XP: " + OldXP + " newXPGain: " + newXPGain + " New XP: " + ActorToLevel.GetValue(FV_VoreXP) + " Old Level: " + OldLevel + " NewLevel: " + akVoreLevel)
 	
 EndFunction
 

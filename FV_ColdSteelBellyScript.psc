@@ -82,12 +82,12 @@ Bool Function ChangeColdSteelDigestFullness(Actor akPred, Float TimerState)
 		ChangePerCount = -0.01						;When bloating occurs, belly will increase in size until next tick
 	EndIf
 	Float fUpdateGiantBelly = BodyGen.GetMorph(akPred, predGender, sCBBEGiantbelly, NONE)
-	If(TimerState > MaxTimerState && fUpdateGiantBelly < MaxTimerState * fGiantBellyMultiplier)	
+	If(TimerState >= MaxTimerState && fUpdateGiantBelly < MaxTimerState * fGiantBellyMultiplier)	
 		BodyGen.SetMorph(akPred, predGender, sCBBEVorePreyBelly, NONE, 0)
 		BodyGen.SetMorph(akPred, predGender, sCBBEGiantBelly, NONE, MaxTimerState * fGiantBellyMultiplier)
 		bUpdateGiantBelly = true
-	ElseIf(TimerState <= MaxTimerState && TimerState > 0)
-		;FV_ConsumptionRegistry.trace(self, "ChangeColdSteelDigestFullness() FV_GiantBelly: " + akPred.GetValue(FV_GiantBelly) + " TimerStateAndMult: " +TimerState*fGiantBellyMultiplier + " fUpdateGiantBelly: " + fUpdateGiantBelly)
+	ElseIf(TimerState < MaxTimerState && TimerState > 0)
+		FV_ConsumptionRegistry.trace(self, "ChangeColdSteelDigestFullness() FV_GiantBelly: " + akPred.GetValue(FV_GiantBelly) + " TimerStateAndMult: " +TimerState*fGiantBellyMultiplier + " fUpdateGiantBelly: " + fUpdateGiantBelly + " MaxTimerState: " + MaxTimerState)
 		If(akPred.GetValue(FV_DigestionStarted) as int == 0)
 			;Float tempTimerState = data.TimerState as float	
 			If(akPred.GetValue(FV_GiantBelly) as float < TimerState*fGiantBellyMultiplier)

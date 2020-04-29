@@ -4,6 +4,7 @@ Int Property VoreSpawnLevel=0 Auto
 
 GlobalVariable Property FV_VoreLevelPoints Auto
 FV_ConsumptionRegistryScript Property FV_ConsumptionRegistry Auto
+FV_LevelUpManagerScript Property FV_LevelUpManager Auto
 ActorValue Property FV_PredLevel Auto
 ActorValue Property FV_PreyLevel Auto
 ActorValue Property FV_HasHadNukaAcid Auto
@@ -23,6 +24,6 @@ Event OnEffectStart(Actor akTarget, Actor akCaster)
 		Else
 			(akCaster).ModValue(FV_PreyLevel, NewLevel - (akCaster).GetValue(FV_PreyLevel))
 		EndIf
-		FV_ConsumptionRegistry.LevelUpNPC(akCaster)
+		FV_LevelUpManager.LevelUpNPC(akCaster)
 	EndIf
 EndEvent

@@ -12,7 +12,7 @@ EndEvent
 Event FollowersScript.CompanionChange(FollowersScript akSender, Var[] akArgs)	;akArgs[0] => actor companion, akArgs[1] => bool iscompanion
 	Actor companionChanged = akArgs[0] as Actor
 	Bool isCompanion = akArgs[1] as bool
-	
+	debug.trace("FV_CompanionListTrackerScript Event CompanionChange companionChanged: " + companionChanged + " isCompanion: " + isCompanion)
 	If(companionChanged != NONE && isCompanion)
 		FV_ActiveCompanionList.AddForm(companionChanged)
 		FV_InactiveCompanionList.RemoveAddedForm(companionChanged)

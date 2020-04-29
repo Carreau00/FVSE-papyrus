@@ -17,6 +17,7 @@ Group ActorValues
 	ActorValue Property FV_SwallowResistance Auto
 	ActorValue Property FV_VoreFrenzied Auto
 	ActorValue Property FV_VoreLevel Auto
+	ActorValue Property FV_SwallowProtectionFlag Auto
 EndGroup
 
 Group Factions
@@ -92,7 +93,7 @@ EndFunction
 
 
 Event OnEffectStart(actor akTarget, actor akCaster)
-
+		
 		;0-100 dice role
 		float swallowDice = Utility.RandomFloat()
 		float scale = 1.0
@@ -226,12 +227,15 @@ Event OnEffectStart(actor akTarget, actor akCaster)
 					Else
 						akTarget.setAlpha(0, false)						;makes player invisible
 						akTarget.setGhost(true)							;makes player invincible to enemy's damage	
+					EndIf
+					If(akTarget.GetValue(FV_SwallowProtectionFlag) == 0)
+						akTarget.SetValue(FV_SwallowProtectionFlag, 1)
+						FV_ConsumptionRegistry.PerformVoreEvent(akCaster, akTarget, true)
 					EndIf	
-					FV_ConsumptionRegistry.PerformVoreEvent(akCaster, akTarget, true)
-
 				EndIf
 			EndIf
 		EndIf
-		debug.trace("SwallowScript OnEffectStart end")
-		Dispel()
+	
+	debug.trace("SwallowScript OnEffectStart end")
+	Dispel()
 EndEvent

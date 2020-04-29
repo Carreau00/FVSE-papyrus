@@ -2,11 +2,15 @@ Scriptname FV_PlayerCapacitySystemScript extends Quest
 
 ActorValue Property FV_BellyCapacity Auto
 ActorValue Property FV_CurrentPrey Auto
+ActorValue Property FV_PredLevel Auto
 GlobalVariable Property FV_PlayerCapacityPoints Auto
+GlobalVariable Property FV_CompanionCapacityPoints Auto
 GlobalVariable Property FV_PlayerMinimumCapacityTraining Auto
 FV_ActorDataScript Property FV_ActorData Auto
 FV_ConsumptionRegistryScript Property FV_ConsumptionRegistry Auto
 Message Property FV_PlayerGainedCapacityMessage Auto
+
+RefCollectionAlias Property ActiveCompanions Auto
 
 Perk Property FV_WhaleBelly01 Auto
 Perk Property FV_WhaleBelly02 Auto
@@ -20,6 +24,7 @@ TrainingArray[] ProcessPrey
 Struct TrainingArray
 	Float fPreySlots
 	Float fPlayerTotalPreyCount
+	Actor aPred = NONE
 EndStruct
 
 Event OnInit()
@@ -40,6 +45,14 @@ Event FV_ConsumptionRegistryScript.OnDigest(FV_ConsumptionRegistryScript akSende
 		ProcessPrey.add(temp)
 		
 		CallFunctionNoWait("ProcessCapacityTraining", new var[0])
+	ElseIf(ActiveCompanions.Find(SentPred) > 0 && PlayerRef.GetValue(FV_PredLevel) == 0)
+		TrainingArray tempCompanion = new TrainingArray
+		tempCompanion.fPreySlots = (FV_ActorData.EvaluateSlots(akArgs[2] as Actor)) as float
+		tempCompanion.fPlayerTotalPreyCount = Sentpred.GetValue(FV_CurrentPrey)
+		tempCompanion.aPred = SentPred
+		ProcessPrey.add(tempCompanion)
+		
+		CallFunctionNoWait("ProcessCompanionCapacityTraining", new var[0])
 	EndIf
 EndEvent
 
@@ -54,6 +67,24 @@ Function ProcessCapacityTraining()
 		ProcessSinglePrey(ProcessPrey[0].fPreySlots, ProcessPrey[0].fPlayerTotalPreyCount)
 		ProcessPrey.remove(0)
 		;debug.trace("FV_PlayerCapacitySystemScript ProcessCapacityTraining() " + ProcessPrey.length + " remaining...")
+		utility.WaitMenuMode(0.1)
+	endwhile
+	
+	; We out. Peace.
+	bProcessingTraining = false
+EndFunction
+
+Function ProcessCompanionCapacityTraining()
+	;debug.trace("FV_PlayerCapacitySystemScript ProcessCompanionCapacityTraining() Processing " + ProcessPrey.length + " PreyCount Items...")
+	If(bProcessingTraining)
+		return
+	EndIf
+	
+	bProcessingTraining = true
+	while ProcessPrey.length > 0
+		ProcessCompanionSinglePrey(ProcessPrey[0].fPreySlots, ProcessPrey[0].fPlayerTotalPreyCount, ProcessPrey[0].aPred)
+		ProcessPrey.remove(0)
+		;debug.trace("FV_PlayerCapacitySystemScript ProcessCompanionCapacityTraining() " + ProcessPrey.length + " remaining...")
 		utility.WaitMenuMode(0.1)
 	endwhile
 	
@@ -105,6 +136,7 @@ Float Function RankUp(Float afCapacityPoints)
 		
 		afCapacityPoints -= Math.Ceiling(Math.Pow(PlayerRef.GetBaseValue(FV_BellyCapacity)-iWhaleRank, 2.25))
 		PlayerRef.SetValue(FV_BellyCapacity, PlayerRef.GetBaseValue(FV_BellyCapacity) + 1)
+		RankUpCompanions()
 		If((PlayerRef.GetBaseValue(FV_BellyCapacity) as int)%5 == 0)
 			FV_PlayerMinimumCapacityTraining.SetValue(FV_PlayerMinimumCapacityTraining.GetValue() + 1)
 		EndIf
@@ -113,6 +145,44 @@ Float Function RankUp(Float afCapacityPoints)
 	;Let the player know.  %0.1f is the format replacer, so divide by 2 to give the player an idea of how many humans they can stuff in their guts
 	FV_PlayerGainedCapacityMessage.show(PlayerRef.GetValue(FV_BellyCapacity)/2)
 	return afCapacityPoints
+EndFunction
+
+Function ProcessCompanionSinglePrey(Float afSlots, Float afTotalPreyCount, Actor akPred)
+	If(afSlots <= 0)
+		;bail out  training can't be accomplished
+		return
+	EndIf
+	Float NewCapacityPoints = FV_PlayerCapacityPoints.GetValue() + afSlots
+	If(akPred.GetValue(FV_BellyCapacity) >= 6.0)
+		If(afTotalPreyCount/akPred.GetValue(FV_BellyCapacity) >= 1.0)
+			NewCapacityPoints += 3
+		ElseIf(afTotalPreyCount/akPred.GetValue(FV_BellyCapacity) >= 0.9)
+			NewCapacityPoints += 2
+		ElseIf(afTotalPreyCount/akPred.GetValue(FV_BellyCapacity) >= 0.75)
+			NewCapacityPoints += 1
+		EndIf
+	EndIf
+	If(NewCapacityPoints >= Math.Ceiling(Math.Pow(akPred.GetBaseValue(FV_BellyCapacity), 2.25)))
+		While(NewCapacityPoints >= Math.Ceiling(Math.Pow(akPred.GetBaseValue(FV_BellyCapacity), 2.25)))
+			NewCapacityPoints -= Math.Ceiling(Math.Pow(akPred.GetBaseValue(FV_BellyCapacity), 2.25))
+			RankUpCompanions()
+		EndWhile
+		FV_CompanionCapacityPoints.SetValue(NewCapacityPoints)
+	EndIf
+EndFunction
+
+Function RankUpCompanions()
+	int i = 0
+	While(i < ActiveCompanions.GetCount())
+		Actor Companion = ActiveCompanions.GetAt(i) as Actor
+		If(PlayerRef.GetBaseValue(FV_BellyCapacity) > Companion.GetBaseValue(FV_BellyCapacity))
+			Companion.SetValue(FV_BellyCapacity, PlayerRef.GetBaseValue(FV_BellyCapacity))
+		ElseIf(PlayerRef.GetValue(FV_PredLevel) == 0)
+			Companion.SetValue(FV_BellyCapacity, Companion.GetBaseValue(FV_BellyCapacity)+1)
+		EndIf
+		debug.trace("FV_PlayerCapacitySystemScript RankUpCompanions() Actor: " + Companion + " FV_BellyCapacity: " + Companion.GetBaseValue(FV_BellyCapacity))
+		i += 1
+	EndWhile
 EndFunction
 
 Function UpdateWhaleRank()

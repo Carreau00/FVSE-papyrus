@@ -34,6 +34,10 @@ Int Property Command_StruggleResult					= 330 AutoReadOnly Hidden
 Int Property Command_StruggleChangeStage			= 340 AutoReadOnly Hidden
 Int Property Command_UpdateControlType				= 350 AutoReadOnly Hidden
 
+Int Property Command_UpdateHealthBar				= 400 AutoReadOnly Hidden
+Int Property Command_RemoveHealthBar				= 410 AutoReadOnly Hidden
+Int Property Command_ClearHealthBars				= 420 AutoReadOnly Hidden
+
 Int Property Command_DebugToggle					= 1000 AutoReadOnly Hidden
 
 bool EditLock = false
@@ -185,6 +189,33 @@ Function UpdateStruggleControlType(Int aiUseAlternate = 0)
 	GetEditLock()
 	hud.SendMessage(VoreHud, Command_UpdateControlType, aiUseAlternate)
 	EditLock = False
+EndFunction
+
+Function UpdateHealthBar(Int aiIndex, Actor akPrey)
+	
+	GetEditLock()
+	
+	String PreyName = akPrey.GetLeveledActorBase().GetName()
+	Float healthPercentage = akPrey.GetValue(Game.GetHealthAV())/akPrey.GetBaseValue(Game.GetHealthAV())
+	String SendMessage = aiIndex + "?" + PreyName + "?" + healthPercentage
+	debug.trace("FV_VoreHudScript UpdateHealthBar() SendMessage: " + SendMessage)
+	hud.SendMessageString(VoreHud, Command_UpdateHealthBar as string, SendMessage)
+	
+	EditLock = False
+EndFunction
+
+Function RemoveHealthBar(Int aiIndex)
+	GetEditLock()
+	
+	hud.SendMessage(VoreHud, Command_RemoveHealthBar, aiIndex)
+	EditLock = false
+EndFunction
+
+Function ClearHealthBars()
+	GetEditLock()
+	
+	hud.SendMessage(VoreHud, Command_ClearHealthBars)
+	EditLock = false
 EndFunction
 
 Function HudDebugToggle(Int aiEnabled)

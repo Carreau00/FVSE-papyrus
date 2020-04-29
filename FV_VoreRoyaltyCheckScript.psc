@@ -38,7 +38,7 @@ EndFunction
 
 Function SwapforRoyalty(Actor akActor, int aiGender)
 	int workShopID = (akActor as WorkshopNPCScript).GetWorkshopID()
-	WorkshopScript workshopRef = WorkshopParent.GetWorkshop(workshopID)
+	;WorkshopScript workshopRef = WorkshopParent.GetWorkshop(workshopID)
 	Actor actorToAssign 
 	If(aiGender == 1 && FV_FemaleVoreEnabled.GetValue() == 0)
 		actorToAssign = akActor.PlaceActorAtMe(WorkshopNPC_King_FV_)
@@ -49,7 +49,9 @@ Function SwapforRoyalty(Actor akActor, int aiGender)
 	Else
 		actorToAssign = akActor.PlaceActorAtMe(WorkshopNPC_Queen_FV_)
 	EndIf
-	WorkshopParent.AddPermanentActorToWorkshopPUBLIC(actorToAssign, newWorkshopID = workshopID, bAutoAssign = false)
+	If(workshopID > -1)
+		WorkshopParent.AddPermanentActorToWorkshopPUBLIC(actorToAssign, newWorkshopID = workshopID, bAutoAssign = false)
+	EndIf
 	WorkshopParent.RemoveActorFromWorkshopPUBLIC(akActor as WorkshopNPCScript)
 	akActor.killsilent()
 	akActor.disable()
