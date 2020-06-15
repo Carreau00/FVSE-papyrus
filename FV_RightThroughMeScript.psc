@@ -15,8 +15,8 @@ EndEvent
 Event FV_ConsumptionRegistryScript.OnSwallow(FV_ConsumptionRegistryScript akSender, Var[] akArgs)
 	Bool LethalFlag = akArgs[1] as Bool
 	Actor Pred = akArgs[0] as Actor
-	If(Pred == Game.GetPlayer() && LethalFlag && Pred.HasPerk(FV_RightThroughMe01))
-		Actor Prey = akArgs[2] as Actor
+	Actor Prey = akArgs[2] as Actor
+	If(Pred == Game.GetPlayer() && LethalFlag && Pred.HasPerk(FV_RightThroughMe01) && !Prey.IsDead())
 		CheckPreyCharmed(Pred, Prey)
 	EndIf
 EndEvent

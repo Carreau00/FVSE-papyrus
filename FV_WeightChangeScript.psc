@@ -683,30 +683,30 @@ Function MCMActorToggle(string actorParam, bool EnablePred)
 			EndIf
 		Else
 			trace(self, "  MCM: Actor not in weight array.  No actions taken.")
-			If(actorParam == sPlayer)
-				bEnablePlayerWeightChange = false
-				debug.messagebox("You are not a pred.")
-				FV_VoreHud.HideThiccActor(data.index)
-				int i = 0
-				While(i<PredWeight.Length)
-					If(PredWeight[i].Pred.IsInFaction(CurrentCompanionFaction))
-						FV_VoreHud.UpdateThiccStats(data.index, data.ThiccnessMeter, (data.FullnessMeter as float)/100, data.MeterDownCounter, GetIsPlayer(data.Pred))
+			;If(actorParam == sPlayer)
+			;	bEnablePlayerWeightChange = false
+			;	debug.messagebox("You are not a pred.")
+			;	FV_VoreHud.HideThiccActor(data.index)
+			;	int i = 0
+			;	While(i<PredWeight.Length)
+			;		If(PredWeight[i].Pred.IsInFaction(CurrentCompanionFaction))
+			;			FV_VoreHud.UpdateThiccStats(data.index, data.ThiccnessMeter, (data.FullnessMeter as float)/100, data.MeterDownCounter, GetIsPlayer(data.Pred))
+			;			;FV_VoreHud.ShowActor(PredWeight[i].index, GetIsPlayer(PredWeight[i].Pred))
+			;		EndIf
+			;		i += 1
+			;	EndWhile
+			;Else
+			;	bEnableCompanionWeightChange = false
+			;	debug.messagebox("You do not have an active companion that is a pred.")
+			;	int i = 0
+			;	While(i<PredWeight.Length)
+			;		If(PredWeight[i].Pred == Game.GetPlayer())
+			;			FV_VoreHud.UpdateThiccStats(data.index, data.ThiccnessMeter, (data.FullnessMeter as float)/100, data.MeterDownCounter, GetIsPlayer(data.Pred))
 						;FV_VoreHud.ShowActor(PredWeight[i].index, GetIsPlayer(PredWeight[i].Pred))
-					EndIf
-					i += 1
-				EndWhile
-			Else
-				bEnableCompanionWeightChange = false
-				debug.messagebox("You do not have an active companion that is a pred.")
-				int i = 0
-				While(i<PredWeight.Length)
-					If(PredWeight[i].Pred == Game.GetPlayer())
-						FV_VoreHud.UpdateThiccStats(data.index, data.ThiccnessMeter, (data.FullnessMeter as float)/100, data.MeterDownCounter, GetIsPlayer(data.Pred))
-						;FV_VoreHud.ShowActor(PredWeight[i].index, GetIsPlayer(PredWeight[i].Pred))
-					EndIf
-					i += 1
-				EndWhile
-			EndIf
+			;		EndIf
+			;		i += 1
+			;	EndWhile
+			;EndIf
 		EndIf
 	Else
 		debug.messagebox("Thicc Vore is not enabled.")
@@ -718,9 +718,9 @@ Function MCMReset(string resetParam)
 	WeightData data = new WeightData
 	If(resetParam == sPlayer)
 		data = RetrieveFromWeightArray(0, Game.GetPlayer())
-		If(data==None)
-			debug.messagebox("You are not a pred.")
-		EndIf
+		;If(data==None)
+		;	debug.messagebox("You are not a pred.")
+		;EndIf
 	ElseIf(resetParam == sCompanion)
 		data = NONE
 		int i = 0
@@ -1050,11 +1050,11 @@ Function MCMWeightSet(String actorParam, String Extreme)
 		Int SliderType = GetSliderType(data.Pred)
 		If(SliderType == 1)
 			If(Extreme == "thicc")
-				data.CurrentABSlim = fABSlimMin/100
-				data.CurrentABBreast = fABBreastMin/100
+				data.CurrentABSlim = fABSlimMax/100
+				data.CurrentABBreast = fABBreastMax/100
 				data.CurrentABBreastHuge = fABBreastHugeMax/100
-				data.CurrentABThighSlim = fABThighSlimMin/100
-				data.CurrentABNarrowWaist = fABNarrowWaistMin/100
+				data.CurrentABThighSlim = fABThighSlimMax/100
+				data.CurrentABNarrowWaist = fABNarrowWaistMax/100
 				data.CurrentABButtHuge = fABButtHugeMax/100
 				data.CurrentABBackWide = fABBackWideMax/100
 				data.CurrentABBellySize = fABBellySizeMax/100
@@ -1067,11 +1067,11 @@ Function MCMWeightSet(String actorParam, String Extreme)
 				data.CurrentABWaistSmooth = fABWaistSmoothMax/100
 				data.CurrentABWaistWide = fABWaistWideMax/100
 			ElseIf(Extreme == "thin")
-				data.CurrentABSlim = fABSlimMax/100
-				data.CurrentABBreast = fABBreastMax/100
+				data.CurrentABSlim = fABSlimMin/100
+				data.CurrentABBreast = fABBreastMin/100
 				data.CurrentABBreastHuge = fABBreastHugeMin/100
 				data.CurrentABThighSlim = fABThighSlimMax/100
-				data.CurrentABNarrowWaist = fABNarrowWaistMax/100
+				data.CurrentABNarrowWaist = fABNarrowWaistMin/100
 				data.CurrentABButtHuge = fABButtHugeMin/100
 				data.CurrentABBackWide = fABBackWideMin/100
 				data.CurrentABBellySize = fABBellySizeMin/100
@@ -1088,20 +1088,20 @@ Function MCMWeightSet(String actorParam, String Extreme)
 			If(Extreme == "thicc")
 				data.CurrentCBBE7BUpper = fCBBE7BUpperMax/100
 				data.CurrentCBBE7BLower = fCBBE7BLowerMax/100
-				data.CurrentCBBEBreastsSmall = fCBBEBreastsSmallMin/100
+				data.CurrentCBBEBreastsSmall = fCBBEBreastsSmallMax/100
 				data.CurrentCBBEHips = fCBBEHipsMax/100
 				data.CurrentCBBECalf = fCBBECalfMax/100
 				data.CurrentCBBEChubbyLegs = fCBBEChubbyLegsMax/100
-				data.CurrentCBBEButtSmall = fCBBEButtSmallMin/100
-				data.CurrentCBBESlimThighs = fCBBESlimThighsMin/100
+				data.CurrentCBBEButtSmall = fCBBEButtSmallMax/100
+				data.CurrentCBBESlimThighs = fCBBESlimThighsMax/100
 				data.CurrentCBBEAppleCheeks = fCBBEAppleCheeksMax/100
 				data.CurrentCBBEBigButt = fCBBEBigButtMax/100
 				data.CurrentCBBEBreastWidth = fCBBEBreastWidthMax/100
 				data.CurrentCBBEChestDepth = fCBBEChestDepthMax/100
 				data.CurrentCBBEChubbyArms = fCBBEChubbyArmsMax/100
 				data.CurrentCBBEForearmSize = fCBBEForearmSizeMax/100
-				data.CurrentCBBEPushUp = fCBBEPushUpMin/100
-				data.CurrentCBBEBreastPerkiness = fCBBEBreastPerkinessMin/100
+				data.CurrentCBBEPushUp = fCBBEPushUpMax/100
+				data.CurrentCBBEBreastPerkiness = fCBBEBreastPerkinessMax/100
 				data.CurrentCBBEWaist = fCBBEWaistMax/100
 				data.CurrentCBBESSBBW2 = fCBBESSBBW2Max/100
 				data.CurrentCBBEGiantBelly = fCBBEGiantBellyMax/100
@@ -1113,20 +1113,20 @@ Function MCMWeightSet(String actorParam, String Extreme)
 			ElseIf(Extreme == "thin")
 				data.CurrentCBBE7BUpper = fCBBE7BUpperMin/100
 				data.CurrentCBBE7BLower = fCBBE7BLowerMin/100
-				data.CurrentCBBEBreastsSmall = fCBBEBreastsSmallMax/100
+				data.CurrentCBBEBreastsSmall = fCBBEBreastsSmallMin/100
 				data.CurrentCBBEHips = fCBBEHipsMin/100
 				data.CurrentCBBECalf = fCBBECalfMin/100
 				data.CurrentCBBEChubbyLegs = fCBBEChubbyLegsMin/100
-				data.CurrentCBBEButtSmall = fCBBEButtSmallMax/100
-				data.CurrentCBBESlimThighs = fCBBESlimThighsMax/100
+				data.CurrentCBBEButtSmall = fCBBEButtSmallMin/100
+				data.CurrentCBBESlimThighs = fCBBESlimThighsMin/100
 				data.CurrentCBBEAppleCheeks = fCBBEAppleCheeksMin/100
 				data.CurrentCBBEBigButt = fCBBEBigButtMin/100
 				data.CurrentCBBEBreastWidth = fCBBEBreastWidthMin/100
 				data.CurrentCBBEChestDepth = fCBBEChestDepthMin/100
 				data.CurrentCBBEChubbyArms = fCBBEChubbyArmsMin/100
 				data.CurrentCBBEForearmSize = fCBBEForearmSizeMin/100
-				data.CurrentCBBEPushUp = fCBBEPushUpMax/100
-				data.CurrentCBBEBreastPerkiness = fCBBEBreastPerkinessMax/100
+				data.CurrentCBBEPushUp = fCBBEPushUpMin/100
+				data.CurrentCBBEBreastPerkiness = fCBBEBreastPerkinessMin/100
 				data.CurrentCBBEWaist = fCBBEWaistMin/100
 				data.CurrentCBBESSBBW2 = fCBBESSBBW2Min/100
 				data.CurrentCBBEGiantBelly = fCBBEGiantBellyMin/100

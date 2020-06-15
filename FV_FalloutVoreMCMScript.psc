@@ -27,6 +27,7 @@ Group Globals
 	GlobalVariable Property FV_MaxCapacity Auto
 	GlobalVariable Property FV_PerkPoints Auto
 	GlobalVariable Property FV_ScatBool Auto
+	GlobalVariable Property FV_GrowlBool Auto
 	GlobalVariable Property FV_ScatEnabled Auto
 	GlobalVariable Property FV_StruggleControlType Auto
 	;GlobalVariable Property FV_StatBool Auto
@@ -51,6 +52,7 @@ Group Potions
 	;Potion Property FV_VoreStatPotion Auto
 	Potion Property FV_ContextPreyPotion Auto
 	Potion Property FV_EvoPredatorBasicInjector Auto
+	Potion Property FV_PrimeGrowl Auto
 EndGroup
 
 Group Scripts
@@ -193,6 +195,11 @@ EndFunction
 Function CallContext()
 	FV_ManualPreyContext.SetValue(1)
 	PlayerRef.EquipItem(FV_ContextPreyPotion, true, true)
+EndFunction
+
+Function CallGrowl()
+	FV_GrowlBool.SetValue(1)
+	PlayerRef.EquipItem(FV_PrimeGrowl, true, true)
 EndFunction
 
 Function OnMCMSettingChange(string modName, string id)

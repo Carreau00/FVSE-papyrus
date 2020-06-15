@@ -24,15 +24,19 @@ EndGroup
 
 Actor PlayerRef
 
+CustomEvent ModUpdateEvent
+
 Bool Update301Finished = false
 Bool Update302Finished = false
 Bool Update303Finished = false
+Bool Update304Finished = false
 
 Event OnInit()
 	PlayerRef = Game.GetPlayer()
 	RegisterForRemoteEvent(PlayerRef, "OnPlayerLoadGame")
 	Update302Finished = true
 	Update303Finished = true
+	Update304Finished = true
 	FV_CalculatedMaxWeight.SetValue(FV_MaxBellyWeight.GetValue() + FV_PlayerBellyWeightPerks.GetValue() + ((Game.GetPlayer().GetValue(FV_BellyCapacity)-2.0)*2.0))
 	UpdateMod()
 EndEvent
@@ -76,4 +80,15 @@ Function UpdateMod()
 		FV_PerkQuest.RankUpCompanions()
 		Update303Finished = true
 	EndIf
+	If(!Update304Finished)
+		
+		SendUpdateEvent(304)
+		Update304Finished = true
+	EndIf
+EndFunction
+
+Function SendUpdateEvent(int aiVersionNumber)
+	Var[] akArgs = new Var[1]
+	akArgs[0] = aiVersionNumber
+	SendCustomEvent("ModUpdateEvent", akArgs)
 EndFunction
